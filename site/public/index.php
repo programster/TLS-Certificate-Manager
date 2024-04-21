@@ -1,6 +1,8 @@
 <?php
 
 
+use Programster\Http\HttpCode;
+
 require_once(__DIR__ . '/../bootstrap.php');
 
 
@@ -31,10 +33,7 @@ $errorMiddleware->setErrorHandler(\Slim\Exception\HttpNotFoundException::class, 
     bool $logErrors,
     bool $logErrorDetails
 ) {
-    $response = new \Slim\Psr7\Response();
-    $view = new View404(); // change this View404 file to your custom 404 page.
-    $response->getBody()->write((string) $view); // cast the view to a string, or call ->render() on the object.
-    return $response->withStatus(404);
+    return SlimLib::createJsonResponse(["error" => ["message" => "That route does not exist."]], HttpCode::NOT_FOUND);
 });
 
 // Register all of your controllers here. Preferably in alphabetical order.
