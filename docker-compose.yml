@@ -10,8 +10,9 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./ssl:/etc/apache2/ssl:ro
+      - ./ssl:/etc/apache2/ssl # needs to not be RO if wish to use self-generated certs
       - ./certs:/certs:ro
       - ./configs:/configs:ro
     environment:
       - ENVIRONMENT
+      - SSL_ENABLED
