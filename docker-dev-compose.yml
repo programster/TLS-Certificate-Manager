@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    image: ${DOCKER_IMAGE_NAME}
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/apache2/ssl # needs to not be RO if wish to use self-generated certs
+      - ./certs:/certs:ro
+      - ./configs:/configs:ro
+      - ./site:/var/www/site
+    environment:
+      - ENVIRONMENT
+      - SSL_ENABLED
+      - MOUNTED_SITE=1
+      - HOST_USER_ID
+      - HOST_GROUP_ID

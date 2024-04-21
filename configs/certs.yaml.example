@@ -1,0 +1,23 @@
+# This is a site configuration
+9bdc5cba-45f3-4fc6-ac8d-1af46af07752:
+  
+  # Specify the relative path to the subfolder that will contain 
+  # the certificate files
+  path: "site1"
+  
+  # Specify any number of auth tokens (hashed) that grant access.
+  # Use the site/scripts/generate-auth-token.php script to generate
+  # new ones.
+  authTokens:
+    - $2y$10$Dos3MBZf5ZAwh7auWboHQeA1ZeXFFuUopuNgXmZoTLyNAfvddfn5K
+
+
+# This is yet another site configuration
+# but this time, two bearer tokens have access to it and
+# the path to the certificates is within another subfolder.
+9bdc88a3-bf81-4a36-9d28-b6382110c4c3:
+  path: "dev/site2"
+  authTokens:
+    - $2y$10$rC/54.DOvyLafwX9xRaQvuXlIZN2v5oTHqv9I.or14mZ3ZMUiXwaK
+    - $2y$10$5n0n3VSHuR5GjSnAWG9vmOIA2LbPtw8y88nadqSQTTeOxm36x4zIm
+
