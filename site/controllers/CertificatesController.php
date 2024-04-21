@@ -14,7 +14,7 @@ class CertificatesController extends AbstractSlimController
     {
         $app->get('/', function (Slim\Psr7\Request $request, Slim\Psr7\Response $response, $args) {
             $controller = new CertificatesController($request, $response, $args);
-            return SlimLib::createJsonResponse(['routes' => ['/certs/{uuid}']], HttpCode::OK);
+            return SlimLib::createJsonResponse(['routes' => ['GET /certs/{uuid}']], HttpCode::OK);
         });
 
         $app->get('/certs/{id:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}}', function (Slim\Psr7\Request $request, Slim\Psr7\Response $response, $args) {
