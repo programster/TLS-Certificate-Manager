@@ -13,6 +13,7 @@ if [ $SSL_ENABLED == "1" ]; then
 
     if ! [ -f $FILE ]; then
         echo "SSL/TLS certificates were not provided, creating some self-signed ones!"
+
         openssl req \
            -newkey rsa:2048 \
            -nodes -keyout /etc/apache2/ssl/private.pem \
@@ -23,8 +24,8 @@ if [ $SSL_ENABLED == "1" ]; then
     fi
 
     a2enmod rewrite
-    RUN a2enmod ssl
-    RUN a2ensite default-ssl
+    a2enmod ssl
+    a2ensite default-ssl
 fi
 
 
