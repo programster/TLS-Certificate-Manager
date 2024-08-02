@@ -5,7 +5,7 @@ a basic bearer token. For now, authentication is managed through storing the has
 the bearer token in the `configs/certs.yaml` file. 
 
 ## Getting Started
-Enaure that each of your site's certificates are within their own folders and copy them into the
+Ensure that each of your site's certificates are within their own folders and copy them into the
 `certs` directory.
 
 Navigate to the configs directory and create a `certs.yaml` file from the `certs.yaml.example` 
