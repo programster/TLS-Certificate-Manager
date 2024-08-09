@@ -8,11 +8,18 @@
 
 define('REQUIRED_ENV_VARS', [
     "ENVIRONMENT",
+
+    "DB_USER",
+    "DB_PASSWORD",
+    "DB_HOST",
+    "DB_NAME",
+
+    "ADMIN_AUTH_TOKEN_HASH",
 ]);
 
 define('OPTIONAL_ENV_VARS', [
+    "DB_PORT",
 ]);
-
 define('ALL_VARS', [...REQUIRED_ENV_VARS, ...OPTIONAL_ENV_VARS]);
 
 

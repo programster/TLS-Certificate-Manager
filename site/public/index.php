@@ -37,6 +37,8 @@ $errorMiddleware->setErrorHandler(\Slim\Exception\HttpNotFoundException::class, 
 });
 
 // Register all of your controllers here. Preferably in alphabetical order.
+AuthTokensController::registerRoutes($app);
+AuthTokenAssignmentsController::registerRoutes($app);
 CertificatesController::registerRoutes($app);
 
 

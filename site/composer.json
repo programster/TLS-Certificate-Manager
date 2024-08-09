@@ -5,6 +5,8 @@
         "irap/autoloader": "1.*",
         "programster/core-libs": "^2.3",
         "programster/http-codes": "^2.0",
+        "programster/pgsql-migrations": "^1.0",
+        "programster/pgsql-objects": "^3.0",
         "slim/psr7": "^1.5",
         "slim/slim": "4.*",
         "symfony/dotenv": "^5.3"
@@ -19,7 +21,8 @@
             "ext-xml": "1",
             "ext-xmlwriter": "1",
             "ext-curl": "1",
-            "ext-zip": "1"
+            "ext-zip": "1",
+            "ext-pgsql": "1"
         }
     }
 }

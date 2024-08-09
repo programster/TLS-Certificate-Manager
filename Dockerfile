@@ -15,7 +15,7 @@ EXPOSE 80
 # Install the relevant packages
 RUN apt-get update && apt-get install vim apache2 curl libapache2-mod-php8.2 git unzip cron composer \
     php8.2-cli php8.2-xml php8.2-mbstring php8.2-curl php8.2-bcmath php8.2-yaml \
-    php8.2-zip -y
+    php8.2-zip php8.2-pgsql -y
 
 
 # Enable the php mod we just installed

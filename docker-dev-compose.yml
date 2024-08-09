@@ -6,6 +6,8 @@ services:
     container_name: app
     image: ${DOCKER_IMAGE_NAME}
     restart: always
+    depends_on:
+      - db
     ports:
       - "80:80"
       - "443:443"
@@ -15,8 +17,29 @@ services:
       - ./configs:/configs:ro
       - ./site:/var/www/site
     environment:
+      - ADMIN_AUTH_TOKEN_HASH
       - ENVIRONMENT
       - SSL_ENABLED
+      - DB_USER
+      - DB_PASSWORD
+      - DB_NAME
+      - DB_HOST=db
       - MOUNTED_SITE=1
       - HOST_USER_ID
       - HOST_GROUP_ID
+
+  db:
+    image: postgres:16.4-bullseye
+    container_name: db
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
+    driver: local
+
