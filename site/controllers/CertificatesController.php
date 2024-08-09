@@ -313,7 +313,8 @@ class CertificatesController extends AbstractSlimController
 
     private function handleRequestToDeleteCertificateBundle(string $certificatesBundleId)
     {
-        try {
+        try
+        {
             $certificateBundle = CertificateBundleTable::getInstance()->load($certificatesBundleId);
             $certificateBundle->delete();
 
@@ -322,7 +323,7 @@ class CertificatesController extends AbstractSlimController
                 HttpCode::OK
             );
         }
-        catch (ExceptionModelNotFound $e)
+        catch (ExceptionNoSuchIdException $e)
         {
             $newResponse = SlimLib::createJsonResponse(
                 ['error' => ['message' => "A certificate bundle with that ID does not exist."]],
