@@ -139,7 +139,7 @@ class AuthTokenRecord extends \Programster\PgsqlObjects\AbstractTableRowObject
     public function hasUpdateCertificatePermission(CertificateBundleRecord $record) : bool
     {
         return (
-            $this->isAdmin()
+                $this->isAdmin()
             || ($this->isCreator() && AuthTokenAssignmentTable::getInstance()->isAssigned($this->getId(), $record->getId()))
         );
     }

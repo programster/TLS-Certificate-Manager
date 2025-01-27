@@ -63,9 +63,8 @@ in order to output just the certificate or private key that you want. E.g. the f
 output the fullchain.pem file:
 
 ```bash
-TOKEN_ID="9e115392-961c-4d1e-929f-f11cf5f69dd4"
 CERT_ID="9bdc5cba-45f3-4fc6-ac8d-1af46af07752"
-USER="9e116556-3ecf-4f55-990c-f9631cca2315"
+TOKEN_ID="9e115392-961c-4d1e-929f-f11cf5f69dd4"
 SECRET="mySecurityToken"
 ENCODED_SECRET=$(echo -n $SECRET | base64)
 DOMAIN="cert-manager.mydomain.com"
@@ -79,8 +78,8 @@ curl \
 
 ... and the following would produce the private key
 ```bash
-TOKEN_ID="9e115392-961c-4d1e-929f-f11cf5f69dd4"
 CERT_ID="9bdc5cba-45f3-4fc6-ac8d-1af46af07752"
+TOKEN_ID="9e115392-961c-4d1e-929f-f11cf5f69dd4"
 SECRET="mySecurityToken"
 ENCODED_SECRET=$(echo -n $SECRET | base64)
 DOMAIN="cert-manager.mydomain.com"

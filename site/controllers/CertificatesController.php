@@ -237,16 +237,6 @@ class CertificatesController extends AbstractSlimController
 
             $response = SlimLib::createJsonResponse($responseData, HttpCode::INTERNAL_SERVER_ERROR);
         }
-        catch (Exception $e)
-        {
-            $responseData = [
-                "error" => [
-                    "message" => "Whoops! Something went wrong. Please try again or contact support.",
-                ]
-            ];
-
-            $response = SlimLib::createJsonResponse($responseData, HttpCode::INTERNAL_SERVER_ERROR);
-        }
 
         return $response;
     }
