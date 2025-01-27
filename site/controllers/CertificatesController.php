@@ -17,25 +17,25 @@ class CertificatesController extends AbstractSlimController
         $app->get('/api/certs', function (Slim\Psr7\Request $request, Slim\Psr7\Response $response, $args) {
             $controller = new CertificatesController($request, $response, $args);
             return $controller->handleRequestToListCertificates();
-        })->addMiddleware(new MiddlewareAdminAuth());
+        })->addMiddleware(new MiddlewareTokenAuth());
 
         # create a new certificate bundle
         $app->post('/api/certs', function (Slim\Psr7\Request $request, Slim\Psr7\Response $response, $args) {
             $controller = new CertificatesController($request, $response, $args);
-            return $controller->hanldeRequestToCreateNewCertificateBundle();
-        })->addMiddleware(new MiddlewareAdminAuth());
+            return $controller->handleRequestToCreateNewCertificateBundle();
+        })->addMiddleware(new MiddlewareTokenAuth());
 
         # update certificate bundle
         $app->patch('/api/certs/{id:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}}', function (Slim\Psr7\Request $request, Slim\Psr7\Response $response, $args) {
             $controller = new CertificatesController($request, $response, $args);
             return $controller->hanldeRequestToUpdateCertificateBundle($args['id']);
-        })->addMiddleware(new MiddlewareAdminAuth());
+        })->addMiddleware(new MiddlewareTokenAuth());
 
         # get a specific certificate bundle
         $app->get('/api/certs/{id:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}}', function (Slim\Psr7\Request $request, Slim\Psr7\Response $response, $args) {
             $controller = new CertificatesController($request, $response, $args);
             return $controller->handleRequestForCertificateBundle($args['id']);
-        });
+        })->addMiddleware(new MiddlewareTokenAuth());
 
         # delete a certificate bundle
         $app->delete('/api/certs/{id:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}}', function (Slim\Psr7\Request $request, Slim\Psr7\Response $response, $args) {
@@ -47,7 +47,8 @@ class CertificatesController extends AbstractSlimController
 
     private function handleRequestToListCertificates()
     {
-        $certificates = CertificateBundleTable::getInstance()->loadAll();
+        $authToken = Auth::getAuthToken();
+        $certificates = CertificateBundleTable::getInstance()->fetchForAuthTokenReadAccess($authToken);
         $responseData = [];
 
         foreach ($certificates as $certificate)
@@ -80,9 +81,12 @@ class CertificatesController extends AbstractSlimController
         {
             /* @var $certificateBundle CertificateBundleRecord */
             $certificateBundle = CertificateBundleTable::getInstance()->load($certificateBundleId);
+            $authToken = Auth::getAuthToken($this->m_request);
 
-            /* @TODO - authenticate auth token against certificate */
-            $this->authenticateCertificateRequest($certificateBundle);
+            if (!$authToken->hasReadCertificatePermission($certificateBundle))
+            {
+                throw new ExceptionPermissionDenied("You do not have permission to read this certificate.");
+            }
 
             $responseData = [
                 'id' => $certificateBundle->getId(),
@@ -103,91 +107,8 @@ class CertificatesController extends AbstractSlimController
 
             $response = SlimLib::createJsonResponse($responseData, HttpCode::INTERNAL_SERVER_ERROR);
         }
-        catch (ExceptionBadRequest $badRequest)
-        {
-            $response = SlimLib::createJsonResponse(
-                ["error" => ["message" => $badRequest->getMessage()]],
-                HttpCode::BAD_REQUEST
-            );
-        }
-        catch (ExceptionUnauthorized)
-        {
-            $response = SlimLib::createJsonResponse(
-                ["error" => ["message" => "Authentication failed"]],
-                HttpCode::UNAUTHORIZED
-            );
-        }
-        catch (Exception)
-        {
-            $responseData = [
-                "error" => [
-                    "message" => "Whoops! Something went wrong. Please try again or contact support.",
-                ]
-            ];
-
-            $response = SlimLib::createJsonResponse($responseData, HttpCode::INTERNAL_SERVER_ERROR);
-        }
 
         return $response;
-    }
-
-
-    /**
-     * @param CertificateBundleRecord $certificate
-     * @return void
-     * @throws ExceptionBadRequest
-     * @throws ExceptionUnauthorized - if the user is is not authorized to fetch the specified certificate.
-     * @throws \Programster\PgsqlLib\Exceptions\ExceptionQueryError
-     * @throws \Programster\PgsqlLib\Exceptions\ExceptionUnexpectedValueType
-     */
-    private function authenticateCertificateRequest(CertificateBundleRecord $certificate)
-    {
-        $authHeaders = $this->m_request->getHeader('Authorization');
-
-        if (count($authHeaders) === 0)
-        {
-            throw new ExceptionBadRequest("Missing required authorization header.");
-        }
-
-        $authHeader = $authHeaders[0];
-
-        if (str_contains($authHeader, "Bearer") === false)
-        {
-            throw new ExceptionBadRequest("Authorization header needs to be a bearer token.");
-        }
-
-        $encodedBearerToken = trim(str_replace('Bearer', '', $authHeader));
-        $bearerToken = base64_decode($encodedBearerToken);
-
-
-        if (password_verify($bearerToken, ADMIN_AUTH_TOKEN_HASH))
-        {
-            $authorized = true;
-        }
-        else
-        {
-            // for this specific route, one can use an assigned auth token, check against these.
-            $authTokens = $certificate->fetchAuthTokens();
-            $authorized = false;
-
-            if (count($authTokens) > 0)
-            {
-                foreach ($authTokens as $authToken)
-                {
-                    /* @var $authToken AuthTokenRecord */
-                    if (password_verify($bearerToken, $authToken->getTokenHash()))
-                    {
-                        $authorized = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (!$authorized)
-        {
-            throw new ExceptionUnauthorized();
-        }
     }
 
 
@@ -195,10 +116,16 @@ class CertificatesController extends AbstractSlimController
     {
         try
         {
-            $allPostFields = $this->m_request->getParsedBody();
-
-            /* @var $certificateBundleRecord CertificateBundleRecord */
+            /* @var $certificateBundle CertificateBundleRecord */
             $certificateBundle = CertificateBundleTable::getInstance()->load($certificateBundleId);
+            $authToken = Auth::getAuthToken($this->m_request);
+
+            if (!$authToken->hasUpdateCertificatePermission($certificateBundle))
+            {
+                throw new ExceptionPermissionDenied("You do not have permission to update this certificate.");
+            }
+
+            $allPostFields = $this->m_request->getParsedBody();
 
             if (array_key_exists('name', $allPostFields))
             {
@@ -243,10 +170,17 @@ class CertificatesController extends AbstractSlimController
     }
 
 
-    private function hanldeRequestToCreateNewCertificateBundle()
+    private function handleRequestToCreateNewCertificateBundle()
     {
         try
         {
+            $authToken = Auth::getAuthToken($this->m_request);
+
+            if (in_array($authToken->getAccessLevel(), [AuthTokenLevel::ADMIN, AuthTokenLevel::CERTIFICATE_CREATOR]) === false)
+            {
+                throw new ExceptionPermissionDenied("You need to have an admin or creator token to create certificates.");
+            }
+
             $requiredPostFields = [
                 'id',
                 'name',
@@ -284,6 +218,7 @@ class CertificatesController extends AbstractSlimController
 
             $certificateBundleRecord->save();
 
+            AuthTokenAssignmentRecord::createNew($authToken, $certificateBundleRecord)->save();
             $response = SlimLib::createJsonResponse(['message' => "Certificate bundle created."], HttpCode::CREATED);
         }
         catch (ExceptionValidationFailed|ExceptionModelAlreadyExists $passthruException)
@@ -315,7 +250,15 @@ class CertificatesController extends AbstractSlimController
     {
         try
         {
+            $authToken = Auth::getAuthToken();
+            /* @var $certificateBundle CertificateBundleRecord */
             $certificateBundle = CertificateBundleTable::getInstance()->load($certificatesBundleId);
+
+            if ($authToken->hasDeleteCertificatePermission($certificateBundle) === false)
+            {
+                throw new ExceptionPermissionDenied("You do not have permission to delete that certificate.");
+            }
+
             $certificateBundle->delete();
 
             $newResponse = SlimLib::createJsonResponse(

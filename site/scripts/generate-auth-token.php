@@ -6,7 +6,7 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 
 use Programster\CoreLibs\StringLib;
 
-$randomString = StringLib::generateRandomString(24);
+$token = random_bytes(24);
 
-echo "Base64 encoded bearer token is: " . base64_encode($randomString) . PHP_EOL;
-echo "Hashed form for storing in the config is: " . password_hash($randomString, PASSWORD_DEFAULT) . PHP_EOL;
+echo "Base64 encoded bearer token is: " . base64_encode($token) . PHP_EOL;
+echo "Hashed form for storing in the config is: " . password_hash($token, PASSWORD_DEFAULT) . PHP_EOL;

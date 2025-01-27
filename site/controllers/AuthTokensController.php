@@ -3,6 +3,7 @@
 
 use Programster\Http\HttpCode;
 use Programster\PgsqlObjects\Exceptions\ExceptionNoSuchIdException;
+use Programster\PgsqlObjects\Utils;
 
 class AuthTokensController extends AbstractSlimController
 {
@@ -56,11 +57,13 @@ class AuthTokensController extends AbstractSlimController
         try
         {
             $requiredPostFields = [
-                'id',
                 'name',
-                'base64_encoded_token',
+                'level',
                 'description'
             ];
+
+            $id = Utils::generateUuid();
+            $token = random_bytes(24);
 
             $allPostFields = $this->m_request->getParsedBody();
             $missingFields = array_diff($requiredPostFields, array_keys($allPostFields));
@@ -73,44 +76,51 @@ class AuthTokensController extends AbstractSlimController
 
             /* @todo - verify that id is a UUID, and fullchain/privkey are appropriate for each other */
 
-            $decodedToken = base64_decode($allPostFields['base64_encoded_token']);
-
-            if (count(AuthTokenTable::getInstance()->loadIds([$allPostFields['id']])) > 0 )
-            {
-                throw new ExceptionValidationFailed("An auth token with that ID already exists.");
-            }
-
             if (count(AuthTokenTable::getInstance()->loadWhereAnd(['name' => $allPostFields['name']])) > 0)
             {
                 throw new ExceptionValidationFailed("An auth token with that name already exists.");
             }
 
+            $level = $allPostFields['level'];
+            $description = $allPostFields['description'];
+            $name = $allPostFields['name'];
+            $authTokenLevel = AuthTokenLevel::from($level);
+
             $authTokenRecord = AuthTokenRecord::createNew(
-                $allPostFields['id'],
+                $id,
                 $allPostFields['name'],
-                $decodedToken,
-                $allPostFields['description'],
+                $token,
+                $authTokenLevel,
+                $description,
             );
 
             $authTokenRecord->save();
 
-            $response = SlimLib::createJsonResponse(['message' => "Auth token saved."], HttpCode::CREATED);
+            $responseData = [
+                'id' => $id,
+                'token' => base64_encode($token),
+                'name' => $name,
+                'level' => $authTokenLevel,
+                'description' => $description,
+            ];
+
+            $response = SlimLib::createJsonResponse($responseData, HttpCode::CREATED);
+        }
+        catch (ValueError)
+        {
+            $responseData = [
+                "error" => [
+                    "message" => "{$level} is not a valid access token level.",
+                ]
+            ];
+
+            $response = SlimLib::createJsonResponse($responseData, HttpCode::INTERNAL_SERVER_ERROR);
         }
         catch (ExceptionValidationFailed $validationFailedError)
         {
             $responseData = [
                 "error" => [
                     "message" => $validationFailedError->getMessage(),
-                ]
-            ];
-
-            $response = SlimLib::createJsonResponse($responseData, HttpCode::INTERNAL_SERVER_ERROR);
-        }
-        catch (Exception)
-        {
-            $responseData = [
-                "error" => [
-                    "message" => "Whoops! Something went wrong. Please try again or contact support.",
                 ]
             ];
 

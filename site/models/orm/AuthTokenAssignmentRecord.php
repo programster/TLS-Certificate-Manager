@@ -11,24 +11,26 @@ class AuthTokenAssignmentRecord extends \Programster\PgsqlObjects\AbstractTableR
     /**
      * Creates a new CertificateBundle record
      * WARNING - this does not automatically persist to the database. You need to call save or perform a bulk insert.
-     * @param string $id
-     * @param string $name
-     * @param string $fullchain
-     * @param string $privateKey
-     * @return CertificateBundleRecord
+     * @param AuthTokenRecord|string $authToken - the auth token, or the ID of the auth token.
+     * @param CertificateBundleRecord|string $certificateBundle - the certificate bundle, or the ID of the cert bundle.
+     * @return AuthTokenAssignmentRecord
+     * @throws ExceptionValidationFailed
      * @throws \Programster\PgsqlObjects\Exceptions\ExceptionMissingRequiredData
      */
     public static function createNew(
-        AuthTokenRecord $authToken,
-        CertificateBundleRecord $certificateBundle,
-    )
+        AuthTokenRecord|string $authToken,
+        CertificateBundleRecord|string $certificateBundle,
+    ) : AuthTokenAssignmentRecord
     {
+        $authTokenId = (is_string($authToken)) ? $authToken : $authToken->getId();
+        $certBundleId = (is_string($certificateBundle)) ? $certificateBundle : $certificateBundle->getId();
+
         /* @var $tableHandler AuthTokenAssignmentTable */
         $tableHandler = AuthTokenAssignmentTable::getInstance();
 
         $wherePairs = [
-            'auth_token_id' => $authToken->getId(),
-            'certificate_bundle_id' => $certificateBundle->getId(),
+            'auth_token_id' => $authTokenId,
+            'certificate_bundle_id' => $certBundleId,
         ];
 
         $existingRecords = $tableHandler->loadWhereAnd($wherePairs);
@@ -40,8 +42,8 @@ class AuthTokenAssignmentRecord extends \Programster\PgsqlObjects\AbstractTableR
 
         return self::createNewFromArray([
             'id' => AuthTokenAssignmentTable::getInstance()->generateId(),
-            'auth_token_id' => $authToken->getId(),
-            'certificate_bundle_id' => $certificateBundle->getId(),
+            'auth_token_id' => $authTokenId,
+            'certificate_bundle_id' => $certBundleId,
         ]);
     }
 

@@ -4,7 +4,6 @@ use Programster\PgsqlLib\PgSqlConnection;
 
 class CertificateBundleTable extends \Programster\PgsqlObjects\AbstractTable
 {
-
     public function getObjectClassName(): string
     {
         return CertificateBundleRecord::class;
@@ -42,14 +41,38 @@ class CertificateBundleTable extends \Programster\PgsqlObjects\AbstractTable
 
 
     /**
-     * Fetches the certificate bundles that relate to a given auth token.
+     * Fetches the certificate bundles that thie provided auth token has read access to.
+     * This may retrieve certificates that the user can read, but not update (e.g. full read user)
      */
-    public function fetchForAuthToken(AuthTokenRecord|int $authToken)
+    public function fetchForAuthTokenReadAccess(AuthTokenRecord $authToken)
     {
-        $authTokenId = (is_string($authToken)) ? $authToken : $authToken->getId();
+        if ($authToken->getAccessLevel()->value >= AuthTokenLevel::FULL_READ)
+        {
+            $certificates = $this->loadAll();
+        }
+        else
+        {
+            $authTokenId = $authToken->getId();
+            $subQuery = AuthTokenAssignmentTable::getInstance()->getSelectCertificateIdsForAuthTokenIdQuery($authTokenId);
+            $query = "SELECT * FROM {$this->getEscapedTableName()} WHERE id IN($subQuery)";
+            $result = $this->getDb()->query($query);
+            $certificates = $this->convertPgResultToObjects($result);
+        }
+
+        return $certificates;
+    }
+
+
+    /**
+     * Fetches the certificate bundles that were specifically assigne to an auth token.
+     */
+    public function fetchAssignedToAuthToken(AuthTokenRecord $authToken)
+    {
+        $authTokenId = $authToken->getId();
         $subQuery = AuthTokenAssignmentTable::getInstance()->getSelectCertificateIdsForAuthTokenIdQuery($authTokenId);
         $query = "SELECT * FROM {$this->getEscapedTableName()} WHERE id IN($subQuery)";
         $result = $this->getDb()->query($query);
-        return $this->convertPgResultToObjects($result);
+        $certificates = $this->convertPgResultToObjects($result);
+        return $certificates;
     }
 }

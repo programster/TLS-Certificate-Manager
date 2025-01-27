@@ -53,7 +53,7 @@ class AuthTokenTable extends \Programster\PgsqlObjects\AbstractTable
     {
         $certificateId = (is_string($certificateBundle)) ? $certificateBundle : $certificateBundle->getId();
         $subQuery = AuthTokenAssignmentTable::getInstance()->getSelectAuthTokenIdsForCertificateIdQuery($certificateId);
-        $query = "SELECT * FROM {$this->getEscapedTableName()} WHERE id IN($subQuery)";
+        $query = "SELECT * FROM {$this->getEscapedTableName()} WHERE \"id\" IN($subQuery)";
         $result = $this->getDb()->query($query);
         return $this->convertPgResultToObjects($result);
     }

@@ -5,6 +5,7 @@
  */
 
 use Programster\Http\HttpCode;
+use Psr\Http\Message\ServerRequestInterface;
 
 class SlimLib
 {
@@ -17,4 +18,7 @@ class SlimLib
         $response = $response->withHeader('Content-Type', 'application/json');
         return $response;
     }
+
+
+
 }

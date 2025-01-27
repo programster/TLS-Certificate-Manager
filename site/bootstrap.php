@@ -13,6 +13,7 @@ $requiredEnvVars = array(
     "DB_PASSWORD",
     "DB_NAME",
     "DB_HOST",
+    "ADMIN_AUTH_TOKEN_ID",
     "ADMIN_AUTH_TOKEN_HASH",
 );
 
@@ -29,6 +30,7 @@ define('DB_HOST', getenv('DB_HOST'));
 define('DB_USER', getenv('DB_USER'));
 define('DB_PASSWORD', getenv('DB_PASSWORD'));
 define('DB_NAME', getenv('DB_NAME'));
+define('ADMIN_AUTH_TOKEN_ID', getenv('ADMIN_AUTH_TOKEN_ID'));
 define('ADMIN_AUTH_TOKEN_HASH', base64_decode(getenv('ADMIN_AUTH_TOKEN_HASH')));
 
 
@@ -46,6 +48,7 @@ displayErrorDetails:
 $autoloader = new \iRAP\Autoloader\Autoloader([
     __DIR__,
     __DIR__ . "/controllers",
+    __DIR__ . "/database/seeder",
     __DIR__ . "/exceptions",
     __DIR__ . "/libs",
     __DIR__ . "/middleware",
