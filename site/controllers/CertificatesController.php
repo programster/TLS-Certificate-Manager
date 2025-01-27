@@ -91,6 +91,8 @@ class CertificatesController extends AbstractSlimController
             $responseData = [
                 'id' => $certificateBundle->getId(),
                 'name' => $certificateBundle->getName(),
+                'cert' => $certificateBundle->getCert(),
+                'chain' => $certificateBundle->getChain(),
                 'fullchain' => $certificateBundle->getFullchain(),
                 'private_key' => $certificateBundle->getPrivateKey(),
             ];
@@ -184,6 +186,8 @@ class CertificatesController extends AbstractSlimController
             $requiredPostFields = [
                 'id',
                 'name',
+                'cert',
+                'chain',
                 'fullchain',
                 'private_key',
             ];
@@ -212,6 +216,8 @@ class CertificatesController extends AbstractSlimController
             $certificateBundleRecord = CertificateBundleRecord::createNew(
                 $allPostFields['id'],
                 $allPostFields['name'],
+                $allPostFields['cert'],
+                $allPostFields['chain'],
                 $allPostFields['fullchain'],
                 $allPostFields['private_key'],
             );
