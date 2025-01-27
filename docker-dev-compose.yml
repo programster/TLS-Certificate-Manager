@@ -13,8 +13,6 @@ services:
       - "443:443"
     volumes:
       - ./ssl:/etc/apache2/ssl # needs to not be RO if wish to use self-generated certs
-      - ./certs:/certs:ro
-      - ./configs:/configs:ro
       - ./site:/var/www/site
     environment:
       - ADMIN_AUTH_TOKEN_ID
