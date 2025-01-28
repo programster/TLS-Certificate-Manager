@@ -5,6 +5,11 @@ to manage the TLS certificates, and create auth tokens that have the ability to 
 certificate(s). This way, one can configure other servers or services to have the ability to 
 retrieve the certificates that they are entitled to.
 
+**This tool does not itself generate the TLS certificates, but relies on you POSTing 
+them to the /api/certs endpoint.**
+
+
+
 
 ## Getting Started
 Create a `.env` file from the `.env.example` example provided. If you are *not* using a proxy
@@ -21,6 +26,10 @@ docker compose up
 ```
 
 ## Usage
+
+The easiest way to use this service is to use the 
+[PHP SDK](https://github.com/programster/package-tls-cert-manager-sdk).
+Failing that, I have provided some examples below using cURL in a terminal.
 
 
 ### Creating New Certificates
@@ -132,7 +141,5 @@ To be able to delete certificates, you need either the admin token level,
 or have the `CertificateCreator` token level, and have been assigned to that certificate
 (certificates the creators make, are automatically assigned to them).
 
-## Massive Caveat
-At the moment this tool does not itself generate the TLS certificates, but relies on you POSTing 
-them to the /api/certs endpoint.
+
 

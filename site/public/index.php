@@ -26,8 +26,6 @@ $errorMiddleware = $app->addErrorMiddleware(
     logErrorDetails: true
 );
 
-
-
 // Set the error middlewares 404 handler
 $errorMiddleware->setErrorHandler(\Slim\Exception\HttpNotFoundException::class, function (
     ServerRequestInterface $request,
@@ -39,7 +37,6 @@ $errorMiddleware->setErrorHandler(\Slim\Exception\HttpNotFoundException::class, 
     $responseBody = ["error" => ["message" => "That route does not exist."]];
     return SlimLib::createJsonResponse($responseBody, HttpCode::NOT_FOUND);
 });
-
 
 $customErrorHandler = function (
     ServerRequestInterface $request,
@@ -61,7 +58,6 @@ $customErrorHandler = function (
 };
 
 $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
-
 
 
 // Register all of your controllers here. Preferably in alphabetical order.
