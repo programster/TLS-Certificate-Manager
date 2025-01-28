@@ -1,12 +1,16 @@
 <?php
 
+/**
+ * Middleware that ensures that an auth token was provided, and that it is a token within our system.
+ */
+
 use Programster\Http\HttpCode;
 use Programster\PgsqlObjects\Exceptions\ExceptionNoSuchIdException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ResponseInterface;
 
-class MiddlewareAdminAuth implements \Psr\Http\Server\MiddlewareInterface
+class MiddlewareTokenAuth implements \Psr\Http\Server\MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -19,11 +23,6 @@ class MiddlewareAdminAuth implements \Psr\Http\Server\MiddlewareInterface
             catch (ExceptionNoSuchIdException | ExceptionBadRequest)
             {
                 throw new ExceptionUnauthorized();
-            }
-
-            if ($authToken->getAccessLevel() !== AuthTokenLevel::ADMIN)
-            {
-                throw new ExceptionPermissionDenied("You need to be an admin to perform this action.");
             }
 
             $response = $handler->handle($request);

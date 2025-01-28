@@ -5,6 +5,7 @@
  */
 
 use Programster\Http\HttpCode;
+use Psr\Http\Message\ServerRequestInterface;
 
 class SlimLib
 {
