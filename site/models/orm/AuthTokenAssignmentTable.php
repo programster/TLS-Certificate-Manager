@@ -58,6 +58,21 @@ class AuthTokenAssignmentTable extends \Programster\PgsqlObjects\AbstractTable
 
 
     /**
+     * Returns whether the provided certificate is assigned to the provided auth token.
+     * @param string $authTokenId
+     * @param string $certificateId
+     * @return bool
+     * @throws Exception
+     */
+    public function isAssigned(string $authTokenId, string $certificateId) : bool
+    {
+        $wherePairs = ['auth_token_id' => $authTokenId, 'certificate_bundle_id' => $certificateId];
+        $records = $this->loadWhereAnd($wherePairs);
+        return (count($records) > 0);
+    }
+
+
+    /**
      * Generates the query what will return the IDs of all of the certificatesthat are assigned to an auth token.
      * This returns the query, not the result. This is useful for nested queries.
      * @param string $authTokenId

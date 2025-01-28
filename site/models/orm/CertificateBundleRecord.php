@@ -5,6 +5,8 @@ use Programster\PgsqlObjects\AbstractTableRowObject;
 class CertificateBundleRecord extends AbstractTableRowObject
 {
     private string $m_name;
+    private string $m_cert;
+    private string $m_chain;
     private string $m_fullchain;
     private string $m_privateKey;
 
@@ -19,11 +21,20 @@ class CertificateBundleRecord extends AbstractTableRowObject
      * @return CertificateBundleRecord
      * @throws \Programster\PgsqlObjects\Exceptions\ExceptionMissingRequiredData
      */
-    public static function createNew(string $id, string $name, string $fullchain, string $privateKey)
+    public static function createNew(
+        string $id,
+        string $name,
+        string $cert,
+        string $chain,
+        string $fullchain,
+        string $privateKey
+    )
     {
         return self::createNewFromArray([
             'id' => $id,
             'name' => $name,
+            'cert' => $cert,
+            'chain' => $chain,
             'fullchain' => $fullchain,
             'private_key' => $privateKey
         ]);
@@ -38,6 +49,8 @@ class CertificateBundleRecord extends AbstractTableRowObject
     {
         return [
             'name' => function() : string { return $this->m_name; },
+            'cert' => function() : string { return $this->m_cert; },
+            'chain' => function() : string { return $this->m_chain; },
             'fullchain' => function() : string { return $this->m_fullchain; },
             'private_key' => function() : string { return $this->m_privateKey; },
         ];
@@ -47,6 +60,8 @@ class CertificateBundleRecord extends AbstractTableRowObject
     {
         return [
             'name' => function(string $x) { $this->m_name = $x; },
+            'cert' => function(string $x) { $this->m_cert = $x; },
+            'chain' => function(string $x) { $this->m_chain = $x; },
             'fullchain' => function(string $x) { $this->m_fullchain = $x; },
             'private_key' => function(string $x) { $this->m_privateKey = $x; },
         ];
@@ -68,11 +83,15 @@ class CertificateBundleRecord extends AbstractTableRowObject
     # Accessors
     public function getName() : string { return $this->m_name; }
     public function getPrivateKey() : string { return $this->m_privateKey; }
+    public function getCert() : string { return $this->m_cert; }
+    public function getChain() : string { return $this->m_chain; }
     public function getFullchain() : string { return $this->m_fullchain; }
 
     # Setters
     public function setName(string $name) {$this->m_name = $name; }
     public function setPrivateKey(string $privateKey) {$this->m_privateKey = $privateKey; }
+    public function setCert(string $cert) {$this->m_fullchain = $cert; }
+    public function setChain(string $chain) {$this->m_fullchain = $chain; }
     public function setFullchain(string $fullchain) {$this->m_fullchain = $fullchain; }
 
 }

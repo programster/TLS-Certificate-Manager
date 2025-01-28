@@ -1,8 +1,11 @@
 <?php
 
 
+use Cassandra\Exception\ValidationException;
+use Programster\CoreLibs\StringLib;
 use Programster\Http\HttpCode;
 use Programster\PgsqlObjects\Exceptions\ExceptionNoSuchIdException;
+use Programster\PgsqlObjects\Utils;
 
 class AuthTokensController extends AbstractSlimController
 {
@@ -56,14 +59,24 @@ class AuthTokensController extends AbstractSlimController
         try
         {
             $requiredPostFields = [
-                'id',
                 'name',
-                'base64_encoded_token',
+                'level',
                 'description'
             ];
 
+            $id = Utils::generateUuid();
+            $token = StringLib::generateRandomString(32, useSpecialChars: false);
+
             $allPostFields = $this->m_request->getParsedBody();
-            $missingFields = array_diff($requiredPostFields, array_keys($allPostFields));
+
+            if ($allPostFields === null || count($allPostFields) === 0)
+            {
+                $missingFields = $requiredPostFields;
+            }
+            else
+            {
+                $missingFields = array_diff($requiredPostFields, array_keys($allPostFields));
+            }
 
             if (count($missingFields) > 0)
             {
@@ -73,44 +86,49 @@ class AuthTokensController extends AbstractSlimController
 
             /* @todo - verify that id is a UUID, and fullchain/privkey are appropriate for each other */
 
-            $decodedToken = base64_decode($allPostFields['base64_encoded_token']);
-
-            if (count(AuthTokenTable::getInstance()->loadIds([$allPostFields['id']])) > 0 )
-            {
-                throw new ExceptionValidationFailed("An auth token with that ID already exists.");
-            }
-
             if (count(AuthTokenTable::getInstance()->loadWhereAnd(['name' => $allPostFields['name']])) > 0)
             {
                 throw new ExceptionValidationFailed("An auth token with that name already exists.");
             }
 
+            $level = $allPostFields['level'];
+            $description = $allPostFields['description'];
+            $name = $allPostFields['name'];
+
+            try
+            {
+                $authTokenLevel = AuthTokenLevel::from($level);
+            }
+            catch (ValueError)
+            {
+                throw new ExceptionBadRequest("{$level} is not a valid auth token level.");
+            }
+
             $authTokenRecord = AuthTokenRecord::createNew(
-                $allPostFields['id'],
+                $id,
                 $allPostFields['name'],
-                $decodedToken,
-                $allPostFields['description'],
+                $token,
+                $authTokenLevel,
+                $description,
             );
 
             $authTokenRecord->save();
 
-            $response = SlimLib::createJsonResponse(['message' => "Auth token saved."], HttpCode::CREATED);
+            $responseData = [
+                'id' => $id,
+                'token' => base64_encode($token),
+                'name' => $name,
+                'level' => $authTokenLevel,
+                'description' => $description,
+            ];
+
+            $response = SlimLib::createJsonResponse($responseData, HttpCode::CREATED);
         }
         catch (ExceptionValidationFailed $validationFailedError)
         {
             $responseData = [
                 "error" => [
                     "message" => $validationFailedError->getMessage(),
-                ]
-            ];
-
-            $response = SlimLib::createJsonResponse($responseData, HttpCode::INTERNAL_SERVER_ERROR);
-        }
-        catch (Exception)
-        {
-            $responseData = [
-                "error" => [
-                    "message" => "Whoops! Something went wrong. Please try again or contact support.",
                 ]
             ];
 

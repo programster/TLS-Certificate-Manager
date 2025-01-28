@@ -2,6 +2,7 @@
 
 
 use Programster\Http\HttpCode;
+use Psr\Http\Message\ServerRequestInterface;
 
 require_once(__DIR__ . '/../bootstrap.php');
 
@@ -27,14 +28,37 @@ $errorMiddleware = $app->addErrorMiddleware(
 
 // Set the error middlewares 404 handler
 $errorMiddleware->setErrorHandler(\Slim\Exception\HttpNotFoundException::class, function (
-    \Psr\Http\Message\ServerRequestInterface $request,
+    ServerRequestInterface $request,
     \Throwable $exception,
     bool $displayErrorDetails,
     bool $logErrors,
     bool $logErrorDetails
 ) {
-    return SlimLib::createJsonResponse(["error" => ["message" => "That route does not exist."]], HttpCode::NOT_FOUND);
+    $responseBody = ["error" => ["message" => "That route does not exist."]];
+    return SlimLib::createJsonResponse($responseBody, HttpCode::NOT_FOUND);
 });
+
+$customErrorHandler = function (
+    ServerRequestInterface $request,
+    Throwable $exception,
+    bool $displayErrorDetails,
+    bool $logErrors,
+    bool $logErrorDetails
+) use ($app) {
+    $payload = ['error' => ['message' => $exception->getMessage()]];
+
+    $response = $app->getResponseFactory()->createResponse();
+
+    $response->getBody()->write(
+        json_encode($payload, JSON_UNESCAPED_UNICODE)
+    );
+
+    $response = $response->withStatus(HttpCode::INTERNAL_SERVER_ERROR->value);
+    return $response;
+};
+
+$errorMiddleware->setDefaultErrorHandler($customErrorHandler);
+
 
 // Register all of your controllers here. Preferably in alphabetical order.
 AuthTokensController::registerRoutes($app);

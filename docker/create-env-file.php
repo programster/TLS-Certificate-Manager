@@ -14,6 +14,7 @@ define('REQUIRED_ENV_VARS', [
     "DB_HOST",
     "DB_NAME",
 
+    "ADMIN_AUTH_TOKEN_ID",
     "ADMIN_AUTH_TOKEN_HASH",
 ]);
 
