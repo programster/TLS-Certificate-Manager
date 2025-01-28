@@ -21,14 +21,13 @@ class Auth
 
         $requestEncodedToken = $_SERVER['PHP_AUTH_PW'];
         $tokenId = $_SERVER['PHP_AUTH_USER'];
-        $requestSecret = base64_decode($requestEncodedToken);
+        $requestSecret = $requestEncodedToken;
 
         // first check if is from the env file
         if ($tokenId === ADMIN_AUTH_TOKEN_ID)
         {
             if (password_verify($requestSecret, ADMIN_AUTH_TOKEN_HASH) === false)
             {
-                die("{$requestSecret} did not match for hash " . ADMIN_AUTH_TOKEN_HASH . PHP_EOL);
                 throw new ExceptionVerificationFailed();
             }
 

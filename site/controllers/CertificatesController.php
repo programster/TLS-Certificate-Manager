@@ -47,7 +47,7 @@ class CertificatesController extends AbstractSlimController
 
     private function handleRequestToListCertificates()
     {
-        $authToken = Auth::getAuthToken();
+        $authToken = Auth::getAuthToken($this->m_request);
         $certificates = CertificateBundleTable::getInstance()->fetchForAuthTokenReadAccess($authToken);
         $responseData = [];
 
@@ -134,6 +134,16 @@ class CertificatesController extends AbstractSlimController
                 $certificateBundle->setName($allPostFields['name']);
             }
 
+            if (array_key_exists('cert', $allPostFields))
+            {
+                $certificateBundle->setCert($allPostFields['cert']);
+            }
+
+            if (array_key_exists('chain', $allPostFields))
+            {
+                $certificateBundle->setChain($allPostFields['chain']);
+            }
+
             if (array_key_exists('fullchain', $allPostFields))
             {
                 $certificateBundle->setFullchain($allPostFields['fullchain']);
@@ -208,9 +218,13 @@ class CertificatesController extends AbstractSlimController
                 throw new ExceptionModelAlreadyExists("A certificate bundle with that ID already exists.");
             }
 
-            if (count(CertificateBundleTable::getInstance()->loadWhereAnd(['name' => $allPostFields['name']])) > 0)
+            // validate ID is a UUID
+            $id = $allPostFields['id'];
+            $uuidPattern = '/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i';
+
+            if (preg_match($uuidPattern, $id) === false)
             {
-                throw new ExceptionModelAlreadyExists("A certificate bundle with that name already exists.");
+                throw new ExceptionBadRequest("The ID needs to be a UUIDv4.");
             }
 
             $certificateBundleRecord = CertificateBundleRecord::createNew(
@@ -224,7 +238,14 @@ class CertificatesController extends AbstractSlimController
 
             $certificateBundleRecord->save();
 
-            AuthTokenAssignmentRecord::createNew($authToken, $certificateBundleRecord)->save();
+            // only create assignment records if the token is NOT an admin token or full reader because
+            // a) this has no effect on those tokens abilities.
+            // b) the admin token from env file wont exist in the database, so FKs will fail for insertion.
+            if ($authToken->isAdmin() === false && $authToken->isFullReader() === false)
+            {
+                AuthTokenAssignmentRecord::createNew($authToken, $certificateBundleRecord)->save();
+            }
+
             $response = SlimLib::createJsonResponse(['message' => "Certificate bundle created."], HttpCode::CREATED);
         }
         catch (ExceptionValidationFailed|ExceptionModelAlreadyExists $passthruException)

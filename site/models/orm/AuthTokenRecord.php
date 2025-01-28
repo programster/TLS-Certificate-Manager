@@ -99,14 +99,12 @@ class AuthTokenRecord extends \Programster\PgsqlObjects\AbstractTableRowObject
 
     public function isAdmin() : bool
     {
-
         if ($this->getAccessLevel() === AuthTokenLevel::ADMIN)
         {
             return true;
         }
         else
         {
-            die(print_r($this->getAccessLevel(), true));
             return false;
         }
     }

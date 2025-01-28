@@ -46,7 +46,7 @@ class CertificateBundleTable extends \Programster\PgsqlObjects\AbstractTable
      */
     public function fetchForAuthTokenReadAccess(AuthTokenRecord $authToken)
     {
-        if ($authToken->getAccessLevel()->value >= AuthTokenLevel::FULL_READ)
+        if (in_array($authToken->getAccessLevel(), [AuthTokenLevel::FULL_READ, AuthTokenLevel::ADMIN]))
         {
             $certificates = $this->loadAll();
         }

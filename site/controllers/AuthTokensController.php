@@ -1,6 +1,8 @@
 <?php
 
 
+use Cassandra\Exception\ValidationException;
+use Programster\CoreLibs\StringLib;
 use Programster\Http\HttpCode;
 use Programster\PgsqlObjects\Exceptions\ExceptionNoSuchIdException;
 use Programster\PgsqlObjects\Utils;
@@ -63,10 +65,18 @@ class AuthTokensController extends AbstractSlimController
             ];
 
             $id = Utils::generateUuid();
-            $token = random_bytes(24);
+            $token = StringLib::generateRandomString(32, useSpecialChars: false);
 
             $allPostFields = $this->m_request->getParsedBody();
-            $missingFields = array_diff($requiredPostFields, array_keys($allPostFields));
+
+            if ($allPostFields === null || count($allPostFields) === 0)
+            {
+                $missingFields = $requiredPostFields;
+            }
+            else
+            {
+                $missingFields = array_diff($requiredPostFields, array_keys($allPostFields));
+            }
 
             if (count($missingFields) > 0)
             {
@@ -84,7 +94,15 @@ class AuthTokensController extends AbstractSlimController
             $level = $allPostFields['level'];
             $description = $allPostFields['description'];
             $name = $allPostFields['name'];
-            $authTokenLevel = AuthTokenLevel::from($level);
+
+            try
+            {
+                $authTokenLevel = AuthTokenLevel::from($level);
+            }
+            catch (ValueError)
+            {
+                throw new ExceptionBadRequest("{$level} is not a valid auth token level.");
+            }
 
             $authTokenRecord = AuthTokenRecord::createNew(
                 $id,
@@ -105,16 +123,6 @@ class AuthTokensController extends AbstractSlimController
             ];
 
             $response = SlimLib::createJsonResponse($responseData, HttpCode::CREATED);
-        }
-        catch (ValueError)
-        {
-            $responseData = [
-                "error" => [
-                    "message" => "{$level} is not a valid access token level.",
-                ]
-            ];
-
-            $response = SlimLib::createJsonResponse($responseData, HttpCode::INTERNAL_SERVER_ERROR);
         }
         catch (ExceptionValidationFailed $validationFailedError)
         {
