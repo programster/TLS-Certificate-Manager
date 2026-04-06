@@ -90,8 +90,8 @@ class CertificateBundleRecord extends AbstractTableRowObject
     # Setters
     public function setName(string $name) {$this->m_name = $name; }
     public function setPrivateKey(string $privateKey) {$this->m_privateKey = $privateKey; }
-    public function setCert(string $cert) {$this->m_fullchain = $cert; }
-    public function setChain(string $chain) {$this->m_fullchain = $chain; }
+    public function setCert(string $cert) {$this->m_cert = $cert; }
+    public function setChain(string $chain) {$this->m_chain = $chain; }
     public function setFullchain(string $fullchain) {$this->m_fullchain = $fullchain; }
 
 }
